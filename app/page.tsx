@@ -4,34 +4,70 @@ import React, { useState } from "react";
 import tallesData, { Talles } from "../types/talles";
 
 export default function Home() {
-const [form, setForm] = useState({
-nombre: "",
-cedula: "",
-email: "",
-telefono: "",
-edad: "",
-ciudad: "",
-talle: "",
-});
+  const [form, setForm] = useState({
+    nombre: "",
+    cedula: "",
+    email: "",
+    telefono: "",
+    edad: 0,
+    ciudad: "",
+    nuevaCiudad: "",
+    talle: "",
+  });
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [nuevaCiudad, setNuevaCiudad] = useState<String>('');
+  const [loading, setLoading] = useState(false);
 
-const handleChange = (
-e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-) => {
-setForm({ ...form, [e.target.name]: e.target.value });
-};
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-const handleSubmit = (e: React.FormEvent) => {
-e.preventDefault();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Pre-inscripción:", form);
+    ingresarCorredor();
+  };
 
+  async function ingresarCorredor() {
+  setLoading(true);
 
-console.log("Pre-inscripción:", form);
+  try {
+    const response = await fetch("/api/inserts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...form,
+        nuevaCiudad:
+          form.ciudad === "Otra"
+            ? form.nuevaCiudad
+            : null,
+      }),
+    });
 
-alert("Pre-inscripción enviada (demo). Revisa la consola.");
+    const data = await response.json();
 
+    if (!response.ok) {
+      throw new Error(data.message || "Error al realizar la inscripción");
+    }
 
-};
+    if (data.success) {
+      alert("Inscripción realizada correctamente");
+    }
 
-return ( <main className="page"> <div className="container">
+  } catch (error) {
+    console.error("Error al realizar la inscripción:", error);
+
+    alert("Ocurrió un error al realizar la inscripción.");
+
+  } finally {
+    setLoading(false);
+  }
+}
+  return (<main className="page"> <div className="container">
 
     <header className="site-header">
       <h1>Pre-inscripción — Correcaminata</h1>
@@ -107,6 +143,7 @@ return ( <main className="page"> <div className="container">
               placeholder="Ej. 099 123 456"
               value={form.telefono}
               onChange={handleChange}
+              required
             />
           </div>
 
@@ -123,6 +160,7 @@ return ( <main className="page"> <div className="container">
               placeholder="Ej. 18"
               value={form.edad}
               onChange={handleChange}
+              required
             />
           </div>
 
@@ -131,15 +169,38 @@ return ( <main className="page"> <div className="container">
               Ciudad
             </label>
 
-            <input
+            <select
               id="ciudad"
               name="ciudad"
-              type="text"
-              placeholder="Ej. Nueva Palmira"
               value={form.ciudad}
               onChange={handleChange}
-            />
+              required
+            >
+              <option value=''>Seleccioná tu ciudad</option>
+              <option value='Nueva Palmira'>Nueva Palmira</option>
+              <option value='Carmelo'>Carmelo</option>
+              <option value='Mercedes'>Mercedes</option>
+              <option value='Otra'>Otra</option>
+            </select>
           </div>
+
+          {form.ciudad === 'Otra' && (
+            <div>
+              <label htmlFor="nuevaCiudad">
+                Ingresá tu ciudad
+              </label>
+
+              <input
+                id="nuevaCiudad"
+                name="nuevaCiudad"
+                type="text"
+                placeholder="Ej. Montevideo"
+                value={form.nuevaCiudad}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          )}
 
           <div className="full">
             <label htmlFor="talle">
@@ -153,15 +214,17 @@ return ( <main className="page"> <div className="container">
               onChange={handleChange}
               required
             >
-              <option value="">
-                Seleccioná un talle
-              </option>
 
-              {tallesData.map((t: Talles) => (
+              {optionsOpen ? (
+                <option value="">
+                  Seleccioná un talle
+                </option>
+              ) : (tallesData.map((t: Talles) => (
                 <option key={t.id} value={t.id}>
                   {t.nombre}
                 </option>
-              ))}
+              )))
+              }
             </select>
           </div>
 
@@ -213,8 +276,8 @@ return ( <main className="page"> <div className="container">
 
     </div>
   </div>
-</main>
+  </main >
 
 
-);
+  );
 }
