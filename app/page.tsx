@@ -1,7 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import tallesData, { Talles } from "../types/talles";
+
+interface Inscripto {
+  id: number;
+  nombre: string;
+  cedula: string;
+  email: string;
+  numero: string;
+  edad: number;
+  ciudad: string;
+  talle: string;
+}
 
 export default function Home() {
   const [form, setForm] = useState({
@@ -17,6 +28,27 @@ export default function Home() {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [nuevaCiudad, setNuevaCiudad] = useState<String>('');
   const [loading, setLoading] = useState(false);
+  const [inscriptos, setInscriptos] = useState<Inscripto[]>([]);
+  const [showPrizeModal, setShowPrizeModal] = useState(false);
+
+  useEffect(() => {
+    const fetchInscriptos = async () => {
+      try {
+        const response = await fetch("/api/get");
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Error al obtener inscriptos");
+        }
+
+        setInscriptos(Array.isArray(data.rows) ? data.rows : []);
+      } catch (error) {
+        console.error("Error al obtener inscriptos:", error);
+      }
+    };
+
+    fetchInscriptos();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -26,48 +58,64 @@ export default function Home() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (loading) return;
+
     console.log("Pre-inscripción:", form);
     ingresarCorredor();
   };
 
   async function ingresarCorredor() {
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    const response = await fetch("/api/inserts", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...form,
-        nuevaCiudad:
-          form.ciudad === "Otra"
-            ? form.nuevaCiudad
-            : null,
-      }),
-    });
+    try {
+      const response = await fetch("/api/inserts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...form,
+          nuevaCiudad:
+            form.ciudad === "Otra"
+              ? form.nuevaCiudad
+              : null,
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Error al realizar la inscripción");
+      }
 
-    if (!response.ok) {
-      throw new Error(data.message || "Error al realizar la inscripción");
+      if (data.success) {
+        const totalInscriptos = inscriptos.length + 1;
+
+        if (totalInscriptos <= 50) {
+          setShowPrizeModal(true);
+        } else {
+          alert("Inscripción realizada correctamente");
+        }
+
+        const responseInscriptos = await fetch("/api/get");
+        const updatedData = await responseInscriptos.json();
+
+        if (responseInscriptos.ok && Array.isArray(updatedData.rows)) {
+          setInscriptos(updatedData.rows);
+        }
+      }
+    } catch (error) {
+      console.error("Error al realizar la inscripción:", error);
+
+      alert("Ocurrió un error al realizar la inscripción.");
+    } finally {
+      setLoading(false);
     }
-
-    if (data.success) {
-      alert("Inscripción realizada correctamente");
-    }
-
-  } catch (error) {
-    console.error("Error al realizar la inscripción:", error);
-
-    alert("Ocurrió un error al realizar la inscripción.");
-
-  } finally {
-    setLoading(false);
   }
-}
-  return (<main className="page"> <div className="container">
+
+  return (
+    <main className="page">
+      <div className="container">
 
     <header className="site-header">
       <h1>Pre-inscripción — Correcaminata</h1>
@@ -81,7 +129,7 @@ export default function Home() {
     <div className="layout">
 
       <section className="card form-card">
-        <form onSubmit={handleSubmit} className="form-grid">
+        <form onSubmit={handleSubmit} className="form-grid" aria-busy={loading}>
 
           <div className="full">
             <label htmlFor="nombre">
@@ -232,10 +280,26 @@ export default function Home() {
             <button
               type="submit"
               className="btn-primary"
+              disabled={loading}
+              aria-live="polite"
             >
-              Enviar pre-inscripción
+              {loading ? (
+                <>
+                  <span className="spinner" aria-hidden="true" />
+                  Enviando inscripción...
+                </>
+              ) : (
+                "Enviar pre-inscripción"
+              )}
             </button>
           </div>
+
+          {loading && (
+            <div className="loading-message" role="status" aria-live="polite">
+              <span className="spinner small" aria-hidden="true" />
+              Estamos cargando tu inscripción...
+            </div>
+          )}
 
         </form>
       </section>
@@ -275,9 +339,36 @@ export default function Home() {
       </aside>
 
     </div>
-  </div>
-  </main >
+      </div>
 
+      {showPrizeModal && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="winner-modal">
+            <button
+              type="button"
+              className="modal-close"
+              onClick={() => setShowPrizeModal(false)}
+              aria-label="Cerrar modal"
+            >
+              ×
+            </button>
 
+            <div className="winner-icon" aria-hidden="true">🏆</div>
+            <h3>Felicidades</h3>
+            <p>
+              Has sido uno de los primeros 50 en incribirte. Te has ganado una remera.
+            </p>
+
+            <button
+              type="button"
+              className="btn-primary modal-btn"
+              onClick={() => setShowPrizeModal(false)}
+            >
+              ¡Gracias!
+            </button>
+          </div>
+        </div>
+      )}
+    </main>
   );
 }
