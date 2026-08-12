@@ -10,6 +10,7 @@ interface Inscripto {
     numero: string;
     edad: number;
     ciudad: string;
+    categoria?: string;
     talle: string;
     ganador_remera: number; // 0 = no ganó, 1 = ganó
 }
@@ -23,6 +24,7 @@ export default function InscriptosPage() {
     const [cedulaFiltro, setCedulaFiltro] = useState("");
     const [ciudadFiltro, setCiudadFiltro] = useState("");
     const [ganadorFiltro, setGanadorFiltro] = useState("");
+    const [categoriaFiltro, setCategoriaFiltro] = useState("");
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -64,6 +66,10 @@ export default function InscriptosPage() {
             ciudadFiltro === "" ||
             user.ciudad === ciudadFiltro;
 
+        const categoriaCoincide =
+            categoriaFiltro === "" ||
+            (user.categoria || "") === categoriaFiltro;
+
         const ganadorCoincide =
             ganadorFiltro === "" ||
             (ganadorFiltro === "ganadores" && Number(user.ganador_remera) === 1) ||
@@ -73,7 +79,8 @@ export default function InscriptosPage() {
             nombreCoincide &&
             cedulaCoincide &&
             ciudadCoincide &&
-            ganadorCoincide
+            ganadorCoincide &&
+            categoriaCoincide
         );
     });
 
@@ -88,6 +95,7 @@ export default function InscriptosPage() {
         setCedulaFiltro("");
         setCiudadFiltro("");
         setGanadorFiltro("");
+        setCategoriaFiltro("");
     };
 
     return (
@@ -216,6 +224,20 @@ export default function InscriptosPage() {
                             </select>
                         </div>
 
+                        {/* CATEGORIA */}
+                        <div className="filter-group">
+                            <label htmlFor="categoriaFiltro">Categoría</label>
+                            <select
+                                id="categoriaFiltro"
+                                value={categoriaFiltro}
+                                onChange={(e) => setCategoriaFiltro(e.target.value)}
+                            >
+                                <option value="">Todas</option>
+                                <option value="8KM">8KM</option>
+                                <option value="4KM">4KM</option>
+                            </select>
+                        </div>
+
                     </div>
 
                 </section>
@@ -247,6 +269,7 @@ export default function InscriptosPage() {
                                         <th>Teléfono</th>
                                         <th>Edad</th>
                                         <th>Ciudad</th>
+                                        <th>Categoría</th>
                                         <th>Talle</th>
                                         <th>Premio</th>
                                     </tr>
@@ -272,6 +295,11 @@ export default function InscriptosPage() {
                                             <td>
                                                 <span className="city-badge">
                                                     {user.ciudad}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className="category-badge">
+                                                    {user.categoria || "-"}
                                                 </span>
                                             </td>
                                             <td>

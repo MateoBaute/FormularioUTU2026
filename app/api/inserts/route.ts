@@ -13,6 +13,7 @@ export async function POST(request: Request) {
       edad,
       ciudad,
       nuevaCiudad,
+      categoria,
       talle,
     } = data;
 
@@ -27,9 +28,9 @@ export async function POST(request: Request) {
 
     await pool.query(
       `INSERT INTO inscriptos
-      (nombre, cedula, email, numero, edad, ciudad, talle, ganador_remera)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nombre, cedula, email, telefono, edad, ciudadFinal, talle, esGanador ? 1 : 0]
+      (nombre, cedula, email, numero, edad, ciudad, categoria, talle, ganador_remera)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nombre, cedula, email, telefono, edad, ciudadFinal, categoria, talle, esGanador ? 1 : 0]
     );
 
     return NextResponse.json(

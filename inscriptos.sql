@@ -35,6 +35,7 @@ CREATE TABLE `inscriptos` (
   `numero` varchar(45) NOT NULL,
   `edad` int(11) NOT NULL,
   `ciudad` varchar(45) NOT NULL,
+  `categoria` varchar(10) DEFAULT NULL,
   `talle` varchar(45) DEFAULT NULL,
   `ganador_remera` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
