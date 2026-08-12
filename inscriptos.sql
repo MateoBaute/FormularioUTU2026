@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 12-08-2026 a las 00:46:38
+-- Tiempo de generación: 12-08-2026 a las 03:26:01
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -39,6 +39,13 @@ CREATE TABLE `inscriptos` (
   `ganador_remera` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Índices para tablas volcadas
+--
+
+--
+-- Indices de la tabla `inscriptos`
+--
 ALTER TABLE `inscriptos`
   ADD PRIMARY KEY (`id`);
 
@@ -50,7 +57,7 @@ ALTER TABLE `inscriptos`
 -- AUTO_INCREMENT de la tabla `inscriptos`
 --
 ALTER TABLE `inscriptos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=164;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=229;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
