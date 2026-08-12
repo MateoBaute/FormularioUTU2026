@@ -5,8 +5,6 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
 
-    console.log("Datos recibidos en el servidor:", data);
-
     const {
       nombre,
       cedula,
@@ -18,53 +16,35 @@ export async function POST(request: Request) {
       talle,
     } = data;
 
-    // Si seleccionó "Otra", usamos la ciudad que ingresó manualmente.
-    const ciudadFinal =
-      ciudad === "Otra" ? nuevaCiudad : ciudad;
+    const ciudadFinal = ciudad === "Otra" ? nuevaCiudad : ciudad;
 
-    console.log("Datos individuales:", {
-      nombre,
-      cedula,
-      email,
-      telefono,
-      edad,
-      ciudad,
-      nuevaCiudad,
-      ciudadFinal,
-      talle,
-    });
+    const [rows]: any = await pool.query(
+      `SELECT COUNT(*) as total FROM inscriptos`
+    );
+    const totalActual = rows[0].total;
+
+    const esGanador = totalActual < 50;
 
     await pool.query(
       `INSERT INTO inscriptos
-      (nombre, cedula, email, numero, edad, ciudad, talle)
-      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        nombre,
-        cedula,
-        email,
-        telefono,
-        edad,
-        ciudadFinal,
-        talle,
-      ]
+      (nombre, cedula, email, numero, edad, ciudad, talle, ganador_remera)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nombre, cedula, email, telefono, edad, ciudadFinal, talle, esGanador ? 1 : 0]
     );
 
     return NextResponse.json(
       {
         success: true,
         message: "Inscripción exitosa",
+        ganador: esGanador,
       },
       { status: 200 }
     );
-
   } catch (error) {
     console.error("Error al insertar inscripción:", error);
 
     return NextResponse.json(
-      {
-        success: false,
-        message: "Error al insertar inscripción",
-      },
+      { success: false, message: "Error al insertar inscripción" },
       { status: 500 }
     );
   }

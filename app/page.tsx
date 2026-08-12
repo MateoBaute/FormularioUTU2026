@@ -30,6 +30,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [inscriptos, setInscriptos] = useState<Inscripto[]>([]);
   const [showPrizeModal, setShowPrizeModal] = useState(false);
+  const [ganador, setGanador] = useState(false);
 
   useEffect(() => {
     const fetchInscriptos = async () => {
@@ -89,9 +90,9 @@ export default function Home() {
       }
 
       if (data.success) {
-        const totalInscriptos = inscriptos.length + 1;
+        setGanador(data.ganador);
 
-        if (totalInscriptos <= 50) {
+        if (data.ganador) {
           setShowPrizeModal(true);
         } else {
           alert("Inscripción realizada correctamente");
@@ -117,228 +118,228 @@ export default function Home() {
     <main className="page">
       <div className="container">
 
-    <header className="site-header">
-      <h1>Pre-inscripción — Correcaminata</h1>
+        <header className="site-header">
+          <h1>Pre-inscripción — Correcaminata</h1>
 
-      <p className="lead">
-        Sumate a la correcaminata de la UTU de Nueva Palmira,
-        asegurá tu lugar y seleccioná el talle de tu remera.
-      </p>
-    </header>
+          <p className="lead">
+            Sumate a la correcaminata de la UTU de Nueva Palmira,
+            asegurá tu lugar y seleccioná el talle de tu remera.
+          </p>
+        </header>
 
-    <div className="layout">
+        <div className="layout">
 
-      <section className="card form-card">
-        <form onSubmit={handleSubmit} className="form-grid" aria-busy={loading}>
+          <section className="card form-card">
+            <form onSubmit={handleSubmit} className="form-grid" aria-busy={loading}>
 
-          <div className="full">
-            <label htmlFor="nombre">
-              Nombre completo
-            </label>
+              <div className="full">
+                <label htmlFor="nombre">
+                  Nombre completo
+                </label>
 
-            <input
-              id="nombre"
-              name="nombre"
-              type="text"
-              placeholder="Ingresá tu nombre completo"
-              value={form.nombre}
-              onChange={handleChange}
-              required
-            />
-          </div>
+                <input
+                  id="nombre"
+                  name="nombre"
+                  type="text"
+                  placeholder="Ingresá tu nombre completo"
+                  value={form.nombre}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <div>
-            <label htmlFor="cedula">
-              Cédula
-            </label>
+              <div>
+                <label htmlFor="cedula">
+                  Cédula
+                </label>
 
-            <input
-              id="cedula"
-              name="cedula"
-              type="text"
-              placeholder="Ej. 12345678"
-              value={form.cedula}
-              onChange={handleChange}
-              required
-            />
-          </div>
+                <input
+                  id="cedula"
+                  name="cedula"
+                  type="text"
+                  placeholder="Ej. 12345678"
+                  value={form.cedula}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <div>
-            <label htmlFor="email">
-              Email
-            </label>
+              <div>
+                <label htmlFor="email">
+                  Email
+                </label>
 
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="tu@email.com"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <div>
-            <label htmlFor="telefono">
-              Número de teléfono
-            </label>
+              <div>
+                <label htmlFor="telefono">
+                  Número de teléfono
+                </label>
 
-            <input
-              id="telefono"
-              name="telefono"
-              type="text"
-              placeholder="Ej. 099 123 456"
-              value={form.telefono}
-              onChange={handleChange}
-              required
-            />
-          </div>
+                <input
+                  id="telefono"
+                  name="telefono"
+                  type="text"
+                  placeholder="Ej. 099 123 456"
+                  value={form.telefono}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <div>
-            <label htmlFor="edad">
-              Edad
-            </label>
+              <div>
+                <label htmlFor="edad">
+                  Edad
+                </label>
 
-            <input
-              id="edad"
-              name="edad"
-              type="number"
-              min="0"
-              placeholder="Ej. 18"
-              value={form.edad}
-              onChange={handleChange}
-              required
-            />
-          </div>
+                <input
+                  id="edad"
+                  name="edad"
+                  type="number"
+                  min="0"
+                  placeholder="Ej. 18"
+                  value={form.edad}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <div>
-            <label htmlFor="ciudad">
-              Ciudad
-            </label>
+              <div>
+                <label htmlFor="ciudad">
+                  Ciudad
+                </label>
 
-            <select
-              id="ciudad"
-              name="ciudad"
-              value={form.ciudad}
-              onChange={handleChange}
-              required
-            >
-              <option value=''>Seleccioná tu ciudad</option>
-              <option value='Nueva Palmira'>Nueva Palmira</option>
-              <option value='Carmelo'>Carmelo</option>
-              <option value='Mercedes'>Mercedes</option>
-              <option value='Otra'>Otra</option>
-            </select>
-          </div>
+                <select
+                  id="ciudad"
+                  name="ciudad"
+                  value={form.ciudad}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value=''>Seleccioná tu ciudad</option>
+                  <option value='Nueva Palmira'>Nueva Palmira</option>
+                  <option value='Carmelo'>Carmelo</option>
+                  <option value='Mercedes'>Mercedes</option>
+                  <option value='Otra'>Otra</option>
+                </select>
+              </div>
 
-          {form.ciudad === 'Otra' && (
-            <div>
-              <label htmlFor="nuevaCiudad">
-                Ingresá tu ciudad
-              </label>
+              {form.ciudad === 'Otra' && (
+                <div>
+                  <label htmlFor="nuevaCiudad">
+                    Ingresá tu ciudad
+                  </label>
 
-              <input
-                id="nuevaCiudad"
-                name="nuevaCiudad"
-                type="text"
-                placeholder="Ej. Montevideo"
-                value={form.nuevaCiudad}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          )}
-
-          <div className="full">
-            <label htmlFor="talle">
-              Talle de remera
-            </label>
-
-            <select
-              id="talle"
-              name="talle"
-              value={form.talle}
-              onChange={handleChange}
-              required
-            >
-
-              {optionsOpen ? (
-                <option value="">
-                  Seleccioná un talle
-                </option>
-              ) : (tallesData.map((t: Talles) => (
-                <option key={t.id} value={t.id}>
-                  {t.nombre}
-                </option>
-              )))
-              }
-            </select>
-          </div>
-
-          <div className="actions">
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={loading}
-              aria-live="polite"
-            >
-              {loading ? (
-                <>
-                  <span className="spinner" aria-hidden="true" />
-                  Enviando inscripción...
-                </>
-              ) : (
-                "Enviar pre-inscripción"
+                  <input
+                    id="nuevaCiudad"
+                    name="nuevaCiudad"
+                    type="text"
+                    placeholder="Ej. Montevideo"
+                    value={form.nuevaCiudad}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
               )}
-            </button>
-          </div>
 
-          {loading && (
-            <div className="loading-message" role="status" aria-live="polite">
-              <span className="spinner small" aria-hidden="true" />
-              Estamos cargando tu inscripción...
-            </div>
-          )}
+              <div className="full">
+                <label htmlFor="talle">
+                  Talle de remera
+                </label>
 
-        </form>
-      </section>
+                <select
+                  id="talle"
+                  name="talle"
+                  value={form.talle}
+                  onChange={handleChange}
+                  required
+                >
 
-      <aside className="card table-card">
-        <h2>Talles y medidas</h2>
+                  {optionsOpen ? (
+                    <option value="">
+                      Seleccioná un talle
+                    </option>
+                  ) : (tallesData.map((t: Talles) => (
+                    <option key={t.id} value={t.id}>
+                      {t.nombre}
+                    </option>
+                  )))
+                  }
+                </select>
+              </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Talle</th>
-              <th>Pecho</th>
-              <th>Cintura</th>
-              <th>Largo</th>
-            </tr>
-          </thead>
+              <div className="actions">
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={loading}
+                  aria-live="polite"
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner" aria-hidden="true" />
+                      Enviando inscripción...
+                    </>
+                  ) : (
+                    "Enviar pre-inscripción"
+                  )}
+                </button>
+              </div>
 
-          <tbody>
-            {tallesData.map((t: Talles) => (
-              <tr key={t.id}>
-                <td>{t.nombre}</td>
-                <td>{t.medidas.pechoCm} cm</td>
-                <td>
-                  {t.medidas.cinturaCm
-                    ? `${t.medidas.cinturaCm} cm`
-                    : "-"}
-                </td>
-                <td>
-                  {t.medidas.largoCm
-                    ? `${t.medidas.largoCm} cm`
-                    : "-"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </aside>
+              {loading && (
+                <div className="loading-message" role="status" aria-live="polite">
+                  <span className="spinner small" aria-hidden="true" />
+                  Estamos cargando tu inscripción...
+                </div>
+              )}
 
-    </div>
+            </form>
+          </section>
+
+          <aside className="card table-card">
+            <h2>Talles y medidas</h2>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Talle</th>
+                  <th>Pecho</th>
+                  <th>Cintura</th>
+                  <th>Largo</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {tallesData.map((t: Talles) => (
+                  <tr key={t.id}>
+                    <td>{t.nombre}</td>
+                    <td>{t.medidas.pechoCm} cm</td>
+                    <td>
+                      {t.medidas.cinturaCm
+                        ? `${t.medidas.cinturaCm} cm`
+                        : "-"}
+                    </td>
+                    <td>
+                      {t.medidas.largoCm
+                        ? `${t.medidas.largoCm} cm`
+                        : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </aside>
+
+        </div>
       </div>
 
       {showPrizeModal && (

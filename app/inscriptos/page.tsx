@@ -11,6 +11,7 @@ interface Inscripto {
     edad: number;
     ciudad: string;
     talle: string;
+    ganador_remera: number; // 0 = no ganó, 1 = ganó
 }
 
 export default function InscriptosPage() {
@@ -21,6 +22,7 @@ export default function InscriptosPage() {
     const [nombreFiltro, setNombreFiltro] = useState("");
     const [cedulaFiltro, setCedulaFiltro] = useState("");
     const [ciudadFiltro, setCiudadFiltro] = useState("");
+    const [ganadorFiltro, setGanadorFiltro] = useState("");
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -62,18 +64,30 @@ export default function InscriptosPage() {
             ciudadFiltro === "" ||
             user.ciudad === ciudadFiltro;
 
+        const ganadorCoincide =
+            ganadorFiltro === "" ||
+            (ganadorFiltro === "ganadores" && Number(user.ganador_remera) === 1) ||
+            (ganadorFiltro === "no-ganadores" && Number(user.ganador_remera) !== 1);
+
         return (
             nombreCoincide &&
             cedulaCoincide &&
-            ciudadCoincide
+            ciudadCoincide &&
+            ganadorCoincide
         );
     });
+
+    // Contador de ganadores sobre el total filtrado
+    const totalGanadores = filteredUsers.filter(
+        (user) => Number(user.ganador_remera) === 1
+    ).length;
 
     // Limpiar filtros
     const limpiarFiltros = () => {
         setNombreFiltro("");
         setCedulaFiltro("");
         setCiudadFiltro("");
+        setGanadorFiltro("");
     };
 
     return (
@@ -98,6 +112,9 @@ export default function InscriptosPage() {
                             {filteredUsers.length === 1
                                 ? "resultado"
                                 : "resultados"}
+                        </span>
+                        <span className="inscriptos-counter-sub">
+                            {totalGanadores} con premio
                         </span>
                     </div>
                 </header>
@@ -181,6 +198,24 @@ export default function InscriptosPage() {
                             </select>
                         </div>
 
+                        {/* GANADOR */}
+                        <div className="filter-group">
+                            <label htmlFor="ganadorFiltro">
+                                Premio
+                            </label>
+                            <select
+                                id="ganadorFiltro"
+                                value={ganadorFiltro}
+                                onChange={(e) =>
+                                    setGanadorFiltro(e.target.value)
+                                }
+                            >
+                                <option value="">Todos</option>
+                                <option value="ganadores">Ganadores</option>
+                                <option value="no-ganadores">No ganadores</option>
+                            </select>
+                        </div>
+
                     </div>
 
                 </section>
@@ -213,6 +248,7 @@ export default function InscriptosPage() {
                                         <th>Edad</th>
                                         <th>Ciudad</th>
                                         <th>Talle</th>
+                                        <th>Premio</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -242,6 +278,29 @@ export default function InscriptosPage() {
                                                 <span className="size-badge">
                                                     {user.talle}
                                                 </span>
+                                            </td>
+                                            <td>
+                                                {Number(user.ganador_remera) === 1 ? (
+                                                    <span className="winner-badge">
+                                                        <svg
+                                                            width="13"
+                                                            height="13"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                        >
+                                                            <polygon points="12 2 15.09 8.63 22 9.24 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.24 8.91 8.63 12 2" />
+                                                        </svg>
+                                                        Ganador
+                                                    </span>
+                                                ) : (
+                                                    <span className="no-winner-badge">
+                                                        Sin premio
+                                                    </span>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
