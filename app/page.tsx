@@ -11,6 +11,7 @@ interface Inscripto {
   numero: string;
   edad: number;
   ciudad: string;
+  categoria: string;
   talle: string;
 }
 
@@ -20,12 +21,13 @@ export default function Home() {
     cedula: "",
     email: "",
     telefono: "",
-    edad: 0,
+    edad: '',
     ciudad: "",
     nuevaCiudad: "",
+    categoria: "",
     talle: "",
+    aceptaTerminos: false,
   });
-  const [optionsOpen, setOptionsOpen] = useState(false);
   const [nuevaCiudad, setNuevaCiudad] = useState<String>('');
   const [loading, setLoading] = useState(false);
   const [inscriptos, setInscriptos] = useState<Inscripto[]>([]);
@@ -51,16 +53,25 @@ export default function Home() {
     fetchInscriptos();
   }, []);
 
+  const remainingShirts = Math.max(0, 50 - inscriptos.length);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const target = e.target as HTMLInputElement;
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    setForm({ ...form, [target.name]: value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (loading) return;
+
+    if (!form.aceptaTerminos) {
+      alert("Debes aceptar los términos y condiciones para continuar.");
+      return;
+    }
 
     console.log("Pre-inscripción:", form);
     ingresarCorredor();
@@ -125,6 +136,14 @@ export default function Home() {
             Sumate a la correcaminata de la UTU de Nueva Palmira,
             asegurá tu lugar y seleccioná el talle de tu remera.
           </p>
+          <div className="info-banner">
+            <strong>Los primeros 50 inscriptos se ganan una remera.</strong>
+            {remainingShirts > 0 ? (
+              <span>&nbsp;Quedan {remainingShirts} remeras.</span>
+            ) : (
+              <span>&nbsp;Ya no quedan remeras disponibles.</span>
+            )}
+          </div>
         </header>
 
         <div className="layout">
@@ -251,6 +270,26 @@ export default function Home() {
                 </div>
               )}
 
+
+
+              <div>
+                <label htmlFor="categoria">
+                  Categoría
+                </label>
+
+                <select
+                  id="categoria"
+                  name="categoria"
+                  value={form.categoria}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Seleccioná categoría</option>
+                  <option value="8KM">8KM</option>
+                  <option value="4KM">4KM</option>
+                </select>
+              </div>
+
               <div className="full">
                 <label htmlFor="talle">
                   Talle de remera
@@ -263,18 +302,30 @@ export default function Home() {
                   onChange={handleChange}
                   required
                 >
-
-                  {optionsOpen ? (
-                    <option value="">
-                      Seleccioná un talle
-                    </option>
-                  ) : (tallesData.map((t: Talles) => (
+                  <option value="">
+                    Seleccioná un talle
+                  </option>
+                  
+                  {tallesData.map((t: Talles) => (
                     <option key={t.id} value={t.id}>
                       {t.nombre}
                     </option>
-                  )))
-                  }
+                  ))}
+
                 </select>
+
+              </div>
+              <div className="full terms">
+                <label className="terms-label" htmlFor="aceptaTerminos">
+                  <input
+                    id="aceptaTerminos"
+                    name="aceptaTerminos"
+                    type="checkbox"
+                    checked={Boolean(form.aceptaTerminos)}
+                    onChange={handleChange}
+                  />
+                  &nbsp;Acepto los términos y condiciones y el <a href="/deslinde" target="_blank" rel="noreferrer">deslinde de responsabilidad</a>
+                </label>
               </div>
 
               <div className="actions">
