@@ -28,7 +28,6 @@ export default function Home() {
     talle: "",
     aceptaTerminos: false,
   });
-  const [nuevaCiudad, setNuevaCiudad] = useState<String>('');
   const [loading, setLoading] = useState(false);
   const [inscriptos, setInscriptos] = useState<Inscripto[]>([]);
   const [showPrizeModal, setShowPrizeModal] = useState(false);
