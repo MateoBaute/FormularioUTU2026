@@ -194,6 +194,10 @@ export default function Home() {
               <span>&nbsp;Ya no quedan remeras disponibles.</span>
             )}
           </div>
+          <div className="info-banner mt-3">
+            <p><strong>Precio de inscripción:</strong> $400 (Se entrega la plata en la mesa)</p>
+            <p><strong>Fecha:</strong> 12 de septiembre a las 15:00</p>
+          </div>
         </header>
 
         <div className="layout">
