@@ -195,7 +195,7 @@ export default function Home() {
             )}
           </div>
           <div className="info-banner mt-3">
-            <p><strong>Precio de inscripción:</strong> $400 (Se entrega la plata en la mesa)</p>
+            <p><strong>Precio de inscripción:</strong> $400 (Se abonará en mesa de inscripción o previamente en Utu)</p>
             <p><strong>Fecha:</strong> 12 de septiembre a las 15:00</p>
           </div>
         </header>
