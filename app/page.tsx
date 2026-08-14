@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import tallesData, { Talles } from "../types/talles";
 
 interface Inscripto {
@@ -14,6 +14,12 @@ interface Inscripto {
   categoria: string;
   talle: string;
 }
+
+const CUPO_REMERAS = 50;
+// Cada cuánto se revalida el contador de inscriptos mientras el usuario
+// tiene el formulario abierto, para minimizar el caso límite en que
+// alguien ve el selector de talle pero el cupo se llena antes de enviar.
+const INTERVALO_REVALIDACION_MS = 15000;
 
 export default function Home() {
   const [form, setForm] = useState({
@@ -32,27 +38,52 @@ export default function Home() {
   const [inscriptos, setInscriptos] = useState<Inscripto[]>([]);
   const [showPrizeModal, setShowPrizeModal] = useState(false);
   const [ganador, setGanador] = useState(false);
+  const [cupoAgotadoAlEnviar, setCupoAgotadoAlEnviar] = useState(false);
+
+  // Evita pisar el estado si el componente se desmontó mientras
+  // había un fetch de revalidación en curso.
+  const isMountedRef = useRef(true);
+
+  const fetchInscriptos = async (): Promise<Inscripto[] | null> => {
+    try {
+      const response = await fetch("/api/get");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Error al obtener inscriptos");
+      }
+
+      const rows = Array.isArray(data.rows) ? data.rows : [];
+
+      if (isMountedRef.current) {
+        setInscriptos(rows);
+      }
+
+      return rows;
+    } catch (error) {
+      console.error("Error al obtener inscriptos:", error);
+      return null;
+    }
+  };
 
   useEffect(() => {
-    const fetchInscriptos = async () => {
-      try {
-        const response = await fetch("/api/get");
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Error al obtener inscriptos");
-        }
-
-        setInscriptos(Array.isArray(data.rows) ? data.rows : []);
-      } catch (error) {
-        console.error("Error al obtener inscriptos:", error);
-      }
-    };
+    isMountedRef.current = true;
 
     fetchInscriptos();
+
+    // Revalidamos periódicamente mientras la página está abierta,
+    // así el contador de remeras restantes no queda desactualizado
+    // si otros usuarios se van inscribiendo mientras tanto.
+    const intervalId = setInterval(fetchInscriptos, INTERVALO_REVALIDACION_MS);
+
+    return () => {
+      isMountedRef.current = false;
+      clearInterval(intervalId);
+    };
   }, []);
 
-  const remainingShirts = Math.max(0, 50 - inscriptos.length);
+  const remainingShirts = Math.max(0, CUPO_REMERAS - inscriptos.length);
+  const puedeGanarRemera = remainingShirts > 0;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -62,7 +93,7 @@ export default function Home() {
     setForm({ ...form, [target.name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (loading) return;
@@ -73,13 +104,31 @@ export default function Home() {
     }
 
     console.log("Pre-inscripción:", form);
-    ingresarCorredor();
+    await ingresarCorredor();
   };
 
   async function ingresarCorredor() {
     setLoading(true);
+    setCupoAgotadoAlEnviar(false);
 
     try {
+      // Revalidamos el cupo justo antes de enviar. El backend sigue
+      // siendo quien decide de forma definitiva (con la transacción
+      // FOR UPDATE), pero esto evita que el usuario mande un talle
+      // elegido "de más" si el cupo se llenó mientras completaba el
+      // formulario.
+      const filasActuales = await fetchInscriptos();
+      const remerasRestantesAlEnviar =
+        filasActuales !== null
+          ? Math.max(0, CUPO_REMERAS - filasActuales.length)
+          : remainingShirts;
+
+      const yaNoHayCupo = remerasRestantesAlEnviar <= 0;
+
+      if (yaNoHayCupo && form.talle) {
+        setCupoAgotadoAlEnviar(true);
+      }
+
       const response = await fetch("/api/inserts", {
         method: "POST",
         headers: {
@@ -87,6 +136,9 @@ export default function Home() {
         },
         body: JSON.stringify({
           ...form,
+          // Si el cupo ya se agotó al momento de enviar, no mandamos
+          // talle: nadie más va a ganar remera.
+          talle: yaNoHayCupo ? null : form.talle,
           nuevaCiudad:
             form.ciudad === "Otra"
               ? form.nuevaCiudad
@@ -104,16 +156,15 @@ export default function Home() {
 
         if (data.ganador) {
           setShowPrizeModal(true);
+        } else if (yaNoHayCupo && form.talle) {
+          alert(
+            "Inscripción realizada correctamente. El cupo de remeras se completó justo antes de tu envío, así que en esta ocasión no te tocó remera."
+          );
         } else {
           alert("Inscripción realizada correctamente");
         }
 
-        const responseInscriptos = await fetch("/api/get");
-        const updatedData = await responseInscriptos.json();
-
-        if (responseInscriptos.ok && Array.isArray(updatedData.rows)) {
-          setInscriptos(updatedData.rows);
-        }
+        await fetchInscriptos();
       }
     } catch (error) {
       console.error("Error al realizar la inscripción:", error);
@@ -137,7 +188,7 @@ export default function Home() {
           </p>
           <div className="info-banner">
             <strong>Los primeros 50 inscriptos se ganan una remera.</strong>
-            {remainingShirts > 0 ? (
+            {puedeGanarRemera ? (
               <span>&nbsp;Quedan {remainingShirts} remeras.</span>
             ) : (
               <span>&nbsp;Ya no quedan remeras disponibles.</span>
@@ -289,31 +340,42 @@ export default function Home() {
                 </select>
               </div>
 
-              <div className="full">
-                <label htmlFor="talle">
-                  Talle de remera
-                </label>
+              {puedeGanarRemera ? (
+                <div className="full">
+                  <label htmlFor="talle">
+                    Talle de remera
+                  </label>
 
-                <select
-                  id="talle"
-                  name="talle"
-                  value={form.talle}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">
-                    Seleccioná un talle
-                  </option>
-                  
-                  {tallesData.map((t: Talles) => (
-                    <option key={t.id} value={t.id}>
-                      {t.nombre}
+                  <select
+                    id="talle"
+                    name="talle"
+                    value={form.talle}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">
+                      Seleccioná un talle
                     </option>
-                  ))}
 
-                </select>
+                    {tallesData.map((t: Talles) => (
+                      <option key={t.id} value={t.id}>
+                        {t.nombre}
+                      </option>
+                    ))}
 
-              </div>
+                  </select>
+
+                </div>
+              ) : null}
+
+              {cupoAgotadoAlEnviar && (
+                <div className="full">
+                  <p className="hint hint-warning" role="status">
+                    El cupo de remeras se completó justo antes de tu envío. Tu inscripción se procesó igual, pero sin remera.
+                  </p>
+                </div>
+              )}
+
               <div className="full terms">
                 <label className="terms-label" htmlFor="aceptaTerminos">
                   <input
@@ -362,9 +424,9 @@ export default function Home() {
               <thead>
                 <tr>
                   <th>Talle</th>
-                  <th>Pecho</th>
-                  <th>Cintura</th>
+                  <th>Contorno</th>
                   <th>Largo</th>
+                  <th>Manga</th>
                 </tr>
               </thead>
 
@@ -372,15 +434,15 @@ export default function Home() {
                 {tallesData.map((t: Talles) => (
                   <tr key={t.id}>
                     <td>{t.nombre}</td>
-                    <td>{t.medidas.pechoCm} cm</td>
-                    <td>
-                      {t.medidas.cinturaCm
-                        ? `${t.medidas.cinturaCm} cm`
-                        : "-"}
-                    </td>
+                    <td>{t.medidas.contornoCm} cm</td>
                     <td>
                       {t.medidas.largoCm
                         ? `${t.medidas.largoCm} cm`
+                        : "-"}
+                    </td>
+                    <td>
+                      {t.medidas.mangaCm
+                        ? `${t.medidas.mangaCm} cm`
                         : "-"}
                     </td>
                   </tr>
