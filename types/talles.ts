@@ -2,18 +2,19 @@ export interface Talles {
   id: string;
   nombre: string;
   medidas: {
-    pechoCm: number;
+    contornoCm: number;
     cinturaCm?: number;
     largoCm?: number;
+    mangaCm?: number;
   };
 }
 
 export const talles: Talles[] = [
-  { id: 'XS', nombre: 'XS', medidas: { pechoCm: 82, cinturaCm: 66, largoCm: 62 } },
-  { id: 'S', nombre: 'S', medidas: { pechoCm: 88, cinturaCm: 72, largoCm: 64 } },
-  { id: 'M', nombre: 'M', medidas: { pechoCm: 96, cinturaCm: 78, largoCm: 66 } },
-  { id: 'L', nombre: 'L', medidas: { pechoCm: 104, cinturaCm: 86, largoCm: 68 } },
-  { id: 'XL', nombre: 'XL', medidas: { pechoCm: 112, cinturaCm: 94, largoCm: 70 } },
+  { id: 'XS', nombre: 'XS', medidas: { contornoCm: 94, largoCm: 64, mangaCm: 31 } },
+  { id: 'S', nombre: 'S', medidas: { contornoCm: 100, largoCm: 67, mangaCm: 32.5 } },
+  { id: 'M', nombre: 'M', medidas: { contornoCm: 106, largoCm: 70, mangaCm: 34 } },
+  { id: 'L', nombre: 'L', medidas: { contornoCm: 112, largoCm: 73, mangaCm: 35 } },
+  { id: 'XL', nombre: 'XL', medidas: { contornoCm: 118, largoCm: 76, mangaCm: 37 } },
 ];
 
 export default talles;
